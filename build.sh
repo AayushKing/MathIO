@@ -1,20 +1,45 @@
 #!/bin/bash
-# Build Script
+# Build Script for MathIO
+
+set -e  # Exit immediately if a command exits with a non-zero status
+
+# Default installation prefix
+PREFIX=${PREFIX:-/usr/local}
+
+# Define installation directories
+LIB_DIR="$PREFIX/lib"
+INCLUDE_DIR="$PREFIX/include"
+BIN_DIR="$PREFIX/bin"
+
+echo "Installation prefix: $PREFIX"
+
+# Create necessary directories
+mkdir -p "$LIB_DIR"
+mkdir -p "$INCLUDE_DIR"
+mkdir -p "$BIN_DIR"
 
 # Compile Library
+echo "Compiling library..."
 gcc -fPIC -c mathio.c -o libmathio.o                # Compile source to object file with position-independent code
 gcc -shared -o libmathio.so libmathio.o            # Create the shared library
 
 # Install Library
-cp libmathio.so $PREFIX/lib/libmathio.so            # Copy shared library to specified location
+echo "Installing library to $LIB_DIR..."
+cp libmathio.so "$LIB_DIR/"
 
 # Install Headers
-cp mathio.h $PREFIX/include/mathio.h                # Copy header file to specified include directory
+echo "Installing headers to $INCLUDE_DIR..."
+cp mathio.h "$INCLUDE_DIR/"
 
 # Compile Tool
-gcc -o mathio tool_mathio.c -L$PREFIX/lib -lmathio  # Compile tool linking against the shared library
+echo "Compiling MathIO tool..."
+gcc -o mathio tool_mathio.c -L"$LIB_DIR" -lmathio -I"$INCLUDE_DIR" -Wl,-rpath="$LIB_DIR"  # Compile tool linking against the shared library
 
 # Install Tool
-cp mathio $PREFIX/bin/mathio # Copy the compiled tool to the specified binary directory
+echo "Installing MathIO to $BIN_DIR..."
+cp mathio "$BIN_DIR/"
+
 # Give Permissions
-chmod +x $PREFIX/bin/mathio
+chmod +x "$BIN_DIR/mathio"
+
+echo "MathIO installation completed successfully!"
